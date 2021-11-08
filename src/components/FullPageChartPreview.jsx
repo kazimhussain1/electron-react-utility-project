@@ -107,7 +107,6 @@ function FullPageChartPreview() {
       callback: ({ chartWrapper }) => {
         const chart = chartWrapper.getChart();
         const selection = chart.getSelection();
-        console.log(selection);
         if (selection.length === 1) {
           const [selectedItem] = selection;
           // const dataTable = chartWrapper.getDataTable();

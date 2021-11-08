@@ -41,7 +41,7 @@ function SliderChart({ values, mean, sd, max }) {
     const meanPosition = Math.round((mean / max) * length);
     const sdPlus1 = Math.round(((mean + sd) / max) * length);
     const sdMinus1 = Math.round(((mean - sd) / max) * length);
-    console.log(meanPosition);
+
     const data = Array.from({ length }, (v, k) => {
       if (k + 1 === sdMinus1)
         return [

@@ -1,4 +1,3 @@
-import { local } from 'd3-selection';
 import FullPageChartPreview from './components/FullPageChartPreview';
 import FullPagePreview from './components/FullPagePreview';
 import FullPageProgressBar from './FullPageProgressbar';

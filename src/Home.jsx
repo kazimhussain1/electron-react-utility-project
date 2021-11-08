@@ -23,8 +23,6 @@ function Home() {
   const progressbarContext = useContext(ProgressbarContext);
   const { workingDir, selectedFile, setSelectedFile } = useContext(PathContext);
 
-  console.log(workingDir);
-
   const [files, setFiles] = useState([]);
 
   const getFiles = (path) => {
@@ -44,7 +42,7 @@ function Home() {
     if (workingDir !== '' || workingDir !== undefined) {
       getFiles(workingDir);
     }
-  }, [workingDir, files]);
+  }, [workingDir]);
 
   const handleSelectDirectory = () => {
     window.postMessage({
