@@ -7,43 +7,44 @@ import {
   Select,
   InputLabel,
   MenuItem,
-  TextField,
-  Box
+  TextField
 } from '@mui/material';
 
 import ProgressbarContext from './providers/ProgressbarContext';
 import Stats from './Stats';
 import Graph from './components/Graph';
 import Plots from './components/Plots';
+import PathContext from './providers/PathProvider';
 
 const fs = window.require('fs');
 // const {dialog} = window.require("electron");
 
 function Home() {
   const progressbarContext = useContext(ProgressbarContext);
+  const { workingDir, selectedFile, setSelectedFile } = useContext(PathContext);
 
-  const [workingDir, setWorkingDir] = useState('');
+  console.log(workingDir);
+
   const [files, setFiles] = useState([]);
-  const [selectedFile, setSelectedFile] = useState('');
-
-  console.log(selectedFile);
 
   const getFiles = (path) => {
     if (path || workingDir) {
       fs.readdir(path || workingDir, (err, result) => {
-        result = result.filter((file) => file.endsWith('.csv'));
-        setFiles(result);
+        if (err) {
+          return console.error(err);
+        }
+        if (result) {
+          result = result.filter((file) => file.endsWith('.csv'));
+          setFiles(result);
+        }
       });
     }
   };
   useEffect(() => {
-    window.ipcRenderer.on('select-dirs-result', (evt, message) => {
-      setWorkingDir(message.path[0]);
-      setSelectedFile('');
-      getFiles(message.path[0]);
-      progressbarContext.hideProgressbar();
-    });
-  }, []);
+    if (workingDir !== '' || workingDir !== undefined) {
+      getFiles(workingDir);
+    }
+  }, [workingDir, files]);
 
   const handleSelectDirectory = () => {
     window.postMessage({
@@ -55,8 +56,8 @@ function Home() {
   const handleFileChange = (e) => {
     setSelectedFile(e.target.value);
 
-    window.ipcRenderer.send('load-data', { path: `${workingDir}\\${e.target.value}` });
     progressbarContext.showProgressbar();
+    window.ipcRenderer.send('load-data', { path: `${workingDir}\\${e.target.value}` });
   };
 
   const DirectoryButton = () => (
@@ -68,7 +69,7 @@ function Home() {
     <Grid container spacing={2} style={{ padding: 32 }}>
       <Grid item xs={12}>
         <Typography variant="h4" textAlign="center">
-          Size Utility
+          DigiLube Chain Survey Tool
         </Typography>
       </Grid>
       <Grid item xs={12}>

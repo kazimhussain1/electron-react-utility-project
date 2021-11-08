@@ -7,8 +7,8 @@ let workingDirectory = '';
 function createWindow() {
   // Create the browser window.
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 850,
+    height: 800,
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: true,

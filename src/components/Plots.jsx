@@ -1,13 +1,13 @@
 import { useContext } from 'react';
 import { Button, Grid } from '@mui/material';
-import PreviewContext from '../providers/PreviewProvider';
+import ChartPreviewContext from '../providers/ChartPreviewProvider';
 
 function Plots() {
-  const previewContext = useContext(PreviewContext);
+  const previewContext = useContext(ChartPreviewContext);
   return (
     <Grid container alignContent="center" alignItems="center">
       <Grid item xs={6} textAlign="center">
-        <Button variant="outlined" onClick={() => previewContext.showChart('Scatter')}>
+        <Button variant="outlined" onClick={() => previewContext.showChart('ScatterChart')}>
           Scatter Plot
         </Button>
       </Grid>

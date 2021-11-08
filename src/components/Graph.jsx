@@ -8,7 +8,8 @@ import PreviewContext from '../providers/PreviewProvider';
 // ['Element', 'Length', { role: 'style' }],
 //   ['6.128', 6.128, '#b87333'],
 
-const colors = ['#b87333', 'silver', 'gold', 'color: #e5e4e2'];
+const primaryColor = '#1874D0';
+const orangeColor = '#D55429';
 
 const chartOptions = {
   chartArea: { left: 50, top: 50, width: '100%', height: '80%' },
@@ -30,8 +31,78 @@ const chartOptions = {
     duration: 300,
     easing: 'inAndOut',
     startup: true
-  }
+  },
+  legend: 'none'
 };
+
+function SliderChart({ values, mean, sd, max }) {
+  return useMemo(() => {
+    const { length } = values;
+    const meanPosition = Math.round((mean / max) * length);
+    const sdPlus1 = Math.round(((mean + sd) / max) * length);
+    const sdMinus1 = Math.round(((mean - sd) / max) * length);
+    console.log(meanPosition);
+    const data = Array.from({ length }, (v, k) => {
+      if (k + 1 === sdMinus1)
+        return [
+          k + 1,
+          mean / 2,
+          `fill-color: ${orangeColor}; stroke-color: ${orangeColor};stroke-width: 4;`,
+          'SD - 1'
+        ];
+      if (k + 1 === meanPosition)
+        return [
+          k + 1,
+          mean,
+          `fill-color: ${primaryColor}; stroke-color: ${primaryColor}; stroke-width: 4;`,
+          'Mean'
+        ];
+      if (k + 1 === sdPlus1)
+        return [
+          k + 1,
+          mean / 2,
+          `fill-color: ${orangeColor}; stroke-color: ${orangeColor}; stroke-width: 4;`,
+          'SD + 1'
+        ];
+
+      return [
+        k + 1,
+        0,
+        `fill-color: ${primaryColor}; stroke-color: ${primaryColor}; stroke-width: 4;`,
+        'mean'
+      ];
+    });
+
+    data.unshift([
+      { label: 'Length', type: 'number' },
+      { label: 'Length', type: 'number' },
+      { role: 'style' },
+      { role: 'tooltip' }
+    ]);
+    return (
+      <Chart
+        chartType="ColumnChart"
+        width="100%"
+        data={data}
+        options={{
+          ...chartOptions,
+          bar: { groupWidth: '100%' },
+          height: 100,
+          vAxis: {
+            baselineColor: 'none',
+            ticks: []
+          },
+          chartArea: {
+            left: 32,
+            top: 0,
+            width: '100%',
+            height: '80%'
+          }
+        }}
+      />
+    );
+  }, [values]);
+}
 
 function CustomChart({ data, workingDirectory, selectedFile, sliderValue, chartEvents, total }) {
   return useMemo(
@@ -44,6 +115,7 @@ function CustomChart({ data, workingDirectory, selectedFile, sliderValue, chartE
         loader={<CircularProgress />}
         options={{
           ...chartOptions,
+          isStacked: true,
           chartArea: {
             left: 50,
             top: 50,
@@ -102,7 +174,7 @@ function SliderComponent({ min, max, onChange }) {
 function Graph({ workingDirectory, selectedFile }) {
   const chartContainerRef = useRef(null);
   const { showPreview } = useContext(PreviewContext);
-  const { values, min, max } = useContext(DataContext).data || {};
+  const { values, min, max, mean, sd } = useContext(DataContext).data || {};
 
   const [sliderValue, setSliderValue] = useState([min, max]);
 
@@ -117,13 +189,55 @@ function Graph({ workingDirectory, selectedFile }) {
 
   let data;
   if (values) {
+    const { length } = values;
+    const sdPlus1 = Math.round(((mean + sd) / max) * length);
+    const sdMinus1 = Math.round(((mean - sd) / max) * length);
     data = values
       .filter((element) => element[1] >= sliderValue[0] && element[1] <= sliderValue[1])
-      .map((element, i) => [i + 1, element[1], colors[i % 4], element[3]]);
+      .map((element, i) => {
+        if (i + 1 === sdMinus1)
+          return [
+            i + 1,
+            element[1],
+            `Link # ${element[3]}\n Length: ${element[1]} in`,
+            primaryColor,
+            1,
+            `SD - 1`,
+            orangeColor,
+            element[3]
+          ];
+
+        if (i + 1 === sdPlus1)
+          return [
+            i + 1,
+            element[1],
+            `Link # ${element[3]}\n Length: ${element[1]} in`,
+            primaryColor,
+            1,
+            `SD + 1`,
+            orangeColor,
+            element[3]
+          ];
+
+        return [
+          i + 1,
+          element[1],
+          `Link # ${element[3]}\n Length: ${element[1]} in`,
+          primaryColor,
+          0,
+          `Link # ${element[3]}\n Length: ${element[1]} in`,
+          primaryColor,
+          element[3]
+        ];
+      });
 
     data.unshift([
       { label: 'Length', type: 'number' },
       { label: 'Length', type: 'number' },
+      { role: 'tooltip' },
+      { role: 'style' },
+      { label: 'Length', type: 'number' },
+      { role: 'tooltip' },
       { role: 'style' },
       { role: 'style' }
     ]);
@@ -141,16 +255,11 @@ function Graph({ workingDirectory, selectedFile }) {
 
           const { row } = selectedItem;
 
-          console.log(
-            workingDirectory,
-            selectedFile.replace('.csv', ''),
-            `boo2_${data[row + 1][3]}.png`
-          );
           showPreview(
             `atom://${join(
               workingDirectory,
               selectedFile.replace('.csv', ''),
-              `boo2_${data[row + 1][3]}.png`
+              `boo2_${data[row + 1][7]}.png`
             )}`
           );
         }
@@ -170,8 +279,20 @@ function Graph({ workingDirectory, selectedFile }) {
         <Grid item xs="auto">
           <Typography variant="h6">Range</Typography>
         </Grid>
-        <Grid item xs>
-          <SliderComponent min={min} max={max} onChange={commitChange} />
+        <Grid
+          container
+          item
+          xs
+          sx={{ position: 'relative', height: 120 }}
+          direction="column"
+          justifyContent="end"
+        >
+          <Grid sx={{ zIndex: 1 }}>
+            <SliderComponent min={min} max={max} onChange={commitChange} />
+          </Grid>
+          <Box sx={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}>
+            <SliderChart data={data} values={values} mean={mean} sd={sd} min={min} max={max} />
+          </Box>
         </Grid>
       </Grid>
       <Grid item xs={12}>

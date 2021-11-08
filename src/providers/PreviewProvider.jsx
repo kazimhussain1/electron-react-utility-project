@@ -10,8 +10,6 @@ export default PreviewContext;
 export function PreviewContainer({ children }) {
   const [imgUrl, setImgUrl] = useState(null);
 
-  const [chart, setChart] = useState(null);
-
   const showPreview = (url) => {
     setImgUrl(url);
   };
@@ -19,21 +17,12 @@ export function PreviewContainer({ children }) {
     setImgUrl(null);
   };
 
-  const showChart = (type) => {
-    setChart({ type });
-  };
-  const hideChart = () => {
-    setChart(null);
-  };
   return (
     <PreviewProvider
       value={{
         imgUrl,
-        chart,
         showPreview,
-        hidePreview,
-        showChart,
-        hideChart
+        hidePreview
       }}
     >
       {children}
